@@ -1,12 +1,14 @@
+from datetime import date, datetime
+from decimal import Decimal
 from typing import Tuple, Union
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
 from pathlib import Path
-
 
 __all__ = [
     "Correct_Dir",
-    "Correct_Suffix"
+    "Correct_Suffix",
+    "ML_ex_correct",
 ]
 
 
@@ -24,24 +26,37 @@ class Correct_Dir(BaseModel):
             raise ValueError(f"{path_dir} is not dir!")
         return path_dir
 
+
+class test(BaseModel):
+    x: Decimal
+
+    @field_validator("x")
+    @classmethod
+    def x_c(cls, x: Decimal):
+        return x.quantize(Decimal(0.001))
+
+
 class Correct_Suffix(BaseModel):
     suffix: Union[str, Tuple[str, ...]]
 
     @field_validator("suffix")
     @classmethod
-    def valid_suffix(cls, suffix: Union[str, Tuple[str, ...]]) -> Union[str, Tuple[str, ...]]:
+    def valid_suffix(
+            cls,
+            suffix: Union[str, Tuple[str, ...]]
+            ) -> Union[str, Tuple[str, ...]]:
         if isinstance(suffix, str):
             return Correct_Suffix.valid_str_suffix(suffix)
         elif isinstance(suffix, tuple):
             return Correct_Suffix.valid_tuple_suffix(suffix)
-    
+
     @staticmethod
     def valid_str_suffix(suffix: str) -> str:
         if suffix.startswith(".") or not suffix:
             return tuple([suffix])
         else:
             return tuple(["." + suffix])
-    
+
     @staticmethod
     def valid_tuple_suffix(suffix: Tuple[str]) -> Tuple[str]:
         list_storage = list()
@@ -52,5 +67,46 @@ class Correct_Suffix(BaseModel):
                 list_storage.append("." + item)
         return tuple(list_storage)
 
-if __name__ == "__main__":
-    print(Correct_Suffix(suffix = "").suffix)
+
+class ML_ex_correct(BaseModel):
+    mr_list: str = Field(
+        max_length=8,
+        min_length=8,
+        )
+    order: str = Field(
+        max_length=5,
+        min_length=5,
+        )
+    detail_num: str = Field(max_length=128)
+    detail_name: str = Field(max_length=128)
+    detail_count: int = Field(ge=0)
+    w_hours: Decimal = Field(ge=0)
+    date_start: date
+    mass_metall: Decimal = Field(ge=0)
+    mass_detail: Decimal = Field(ge=0)
+    profile_full: str = Field(max_length=128)
+    profile: str = Field(max_length=32)
+    det_in_workpiece: int = Field(gt=0)
+    material: str = Field(max_length=128)
+
+    @field_validator("w_hours", "mass_metall", "mass_detail", mode="after")
+    @classmethod
+    def decimal_quantize(cls, decimal_v: Decimal):
+        return decimal_v.quantize(Decimal("0.001"))
+
+    @field_validator("w_hours", "mass_metall", "mass_detail", mode="before")
+    @classmethod
+    def decimal_requize(cls, decimal_v: str):
+        return decimal_v.replace(",", ".")
+
+    @field_validator("date_start", mode="before")
+    @classmethod
+    def date_requize(cls, date_v: str):
+        return datetime.strptime(date_v, "%d/%m/%Y").date()
+
+    @field_validator("detail_count", mode="before")
+    @classmethod
+    def detail_count_validate(cls, count: str):
+        if "#" in count:
+            return count.split("#")[0]
+        return count
