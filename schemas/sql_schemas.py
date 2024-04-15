@@ -34,7 +34,7 @@ class Mlexcel_model(Base):
         profile: str
         det_in_workpiece: int
     else:
-        id = Column(BIGINT, primary_key=True)
+        id = Column(INTEGER, primary_key=True)
         mr_list = Column(CHAR(8), name="Маршрутный лист", nullable=False, unique=True)
         order = Column(CHAR(5), name="Заказ", nullable=False)
         detail_num = Column(VARCHAR(128), name="Номер детали", nullable=False)

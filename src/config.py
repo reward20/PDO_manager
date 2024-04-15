@@ -30,12 +30,12 @@ class Settings(BaseSettings):
 
     DIR_DATABASE: str = r"Data\\DB"
     NAME_MLE_DB: str = r"MLE_DB.db"
-    MLE_engine: str = f"sqlite+pysqlite:///{DIR_DATABASE}\\{NAME_MLE_DB}" 
+    MLE_engine: str = f"sqlite+pysqlite:///{DIR_DATABASE}\\{NAME_MLE_DB}"
 
     NAME_BASE: str = r"Маршрутные листы"
     SUFFIX_BASE: str = ".csv"
 
 
 settings = Settings()
-db_engine = create_engine(url=settings.MLE_engine, echo=True)
+db_engine = create_engine(url=settings.MLE_engine)
 db_session = sessionmaker(bind=db_engine)
