@@ -23,7 +23,7 @@ class Settings(BaseSettings):
 
     MLEXCEL_CSV_NAME_COLUMNS: Tuple[str, ...] = (
         "mr_list", "order", "detail_num", "detail_name",
-        "detail_count", "mass_metall", "w_hours",
+        "detail_count", "mass_metal", "w_hours",
         "material", "mass_detail", "profile_full",
         "profile", "date_start", "det_in_workpiece"
         )
@@ -31,6 +31,7 @@ class Settings(BaseSettings):
     DIR_DATABASE: str = r"Data\\DB"
     NAME_MLE_DB: str = r"MLE_DB.db"
     MLE_engine: str = f"sqlite+pysqlite:///{DIR_DATABASE}\\{NAME_MLE_DB}"
+    # MLE_engine: str = "sqlite+pysqlite:///:memory:"
 
     NAME_BASE: str = r"Маршрутные листы"
     SUFFIX_BASE: str = ".csv"

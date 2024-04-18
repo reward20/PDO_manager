@@ -2,13 +2,14 @@ from datetime import date, datetime
 from decimal import Decimal
 from typing import Tuple, Union
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, ValidationError, ConfigDict
 from pathlib import Path
 
 __all__ = [
     "Correct_Dir",
     "Correct_Suffix",
     "ML_ex_correct",
+    "ML_O_correct"
 ]
 
 
@@ -27,15 +28,6 @@ class Correct_Dir(BaseModel):
         return path_dir
 
 
-class test(BaseModel):
-    x: Decimal
-
-    @field_validator("x")
-    @classmethod
-    def x_c(cls, x: Decimal):
-        return x.quantize(Decimal(0.001))
-
-
 class Correct_Suffix(BaseModel):
     suffix: Union[str, Tuple[str, ...]]
 
@@ -51,7 +43,7 @@ class Correct_Suffix(BaseModel):
             return Correct_Suffix.valid_tuple_suffix(suffix)
 
     @staticmethod
-    def valid_str_suffix(suffix: str) -> str:
+    def valid_str_suffix(suffix: str) -> Tuple:
         if suffix.startswith(".") or not suffix:
             return tuple([suffix])
         else:
@@ -82,19 +74,19 @@ class ML_ex_correct(BaseModel):
     detail_count: int = Field(ge=0)
     w_hours: Decimal = Field(ge=0)
     date_start: date
-    mass_metall: Decimal = Field(ge=0)
+    mass_metal: Decimal = Field(ge=0)
     mass_detail: Decimal = Field(ge=0)
     profile_full: str = Field(max_length=128)
     profile: str = Field(max_length=32)
     det_in_workpiece: int = Field(gt=0)
     material: str = Field(max_length=128)
 
-    @field_validator("w_hours", "mass_metall", "mass_detail", mode="after")
+    @field_validator("w_hours", "mass_metal", "mass_detail", mode="after")
     @classmethod
     def decimal_quantize(cls, decimal_v: Decimal):
         return decimal_v.quantize(Decimal("0.001"))
 
-    @field_validator("w_hours", "mass_metall", "mass_detail", mode="before")
+    @field_validator("w_hours", "mass_metal", "mass_detail", mode="before")
     @classmethod
     def decimal_requize(cls, decimal_v: str):
         return decimal_v.replace(",", ".")
@@ -110,3 +102,20 @@ class ML_ex_correct(BaseModel):
         if "#" in count:
             return count.split("#")[0]
         return count
+
+
+class ML_O_correct(BaseModel):
+    model_config = ConfigDict(coerce_numbers_to_str=True)
+
+    detail_num: str = Field(max_length=128, min_length=2)
+    operation_num: int
+    operation_name: str = Field(max_length=128, min_length=1)
+
+    @field_validator("operation_num", mode="after")
+    @classmethod
+    def num_operation_validate(cls, num: int):
+        if not num > 99 and num < 1000:
+            ValidationError(
+                f"Operation number most be greater than 99 and less 1000, received {num}"
+                )
+        return num

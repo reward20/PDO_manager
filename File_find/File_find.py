@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Union, List, Iterator
 
-from schemas import Correct_Dir, Correct_Suffix
+from src.schemas import Correct_Dir, Correct_Suffix
 from dataclasses import dataclass
 
 __all__ = [
