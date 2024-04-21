@@ -6,7 +6,7 @@ from .schemas import (Correct_Dir,
                       ML_O_correct,
                       )
 
-from .models import Base, Mlexcel_model, ML_O_Model
+from .models import Base, Mlexcel_model, Techology, Operation
 
 __all__ = [
     "settings",
@@ -20,5 +20,6 @@ __all__ = [
 
     "Base",
     "Mlexcel_model",
-    "ML_O_Model",
+    "Techology",
+    "Operation"
 ]
