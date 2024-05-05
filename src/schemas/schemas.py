@@ -1,15 +1,22 @@
+from typing import Tuple, Union
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Tuple, Union
+from pydantic import (
+    BaseModel,
+    Field,
+    ValidationError,
+    field_validator,
+    ConfigDict
+)
 
-from pydantic import BaseModel, Field, field_validator, ValidationError, ConfigDict
 from pathlib import Path
 
 __all__ = [
     "Correct_Dir",
     "Correct_Suffix",
     "ML_ex_correct",
-    "ML_O_correct"
+    "ML_O_correct",
+    "SKLAD_correct",
 ]
 
 
@@ -39,11 +46,11 @@ class Correct_Suffix(BaseModel):
             ) -> Union[str, Tuple[str, ...]]:
         if isinstance(suffix, str):
             return Correct_Suffix.valid_str_suffix(suffix)
-        elif isinstance(suffix, tuple):
+        elif isinstance(suffix, (tuple, list)):
             return Correct_Suffix.valid_tuple_suffix(suffix)
 
     @staticmethod
-    def valid_str_suffix(suffix: str) -> Tuple:
+    def valid_str_suffix(suffix: str) -> Tuple[str, ...]:
         if suffix.startswith(".") or not suffix:
             return tuple([suffix])
         else:
@@ -71,7 +78,7 @@ class ML_ex_correct(BaseModel):
         )
     detail_num: str = Field(max_length=128)
     detail_name: str = Field(max_length=128)
-    detail_count: int = Field(ge=0)
+    count: int = Field(ge=0)
     w_hours: Decimal = Field(ge=0)
     date_start: date
     mass_metal: Decimal = Field(ge=0)
@@ -96,7 +103,7 @@ class ML_ex_correct(BaseModel):
     def date_requize(cls, date_v: str):
         return datetime.strptime(date_v, "%d/%m/%Y").date()
 
-    @field_validator("detail_count", mode="before")
+    @field_validator("count", mode="before")
     @classmethod
     def detail_count_validate(cls, count: str):
         if "#" in count:
@@ -110,6 +117,8 @@ class ML_O_correct(BaseModel):
     detail_num: str = Field(max_length=128, min_length=2)
     operation_num: int
     operation_name: str = Field(max_length=128, min_length=1)
+    t_single: Decimal = Field(ge=0)
+    t_install: Decimal = Field(ge=0)
 
     @field_validator("operation_num", mode="after")
     @classmethod
@@ -117,5 +126,23 @@ class ML_O_correct(BaseModel):
         if not num > 99 and num < 1000:
             ValidationError(
                 f"Operation number most be greater than 99 and less 1000, received {num}"
-                )
+            )
         return num
+
+
+class SKLAD_correct(BaseModel):
+    detail_num: str = Field(max_length=128, min_length=2)
+    mr_list: str = Field(
+        max_length=8,
+        min_length=8,
+        )
+    count: int = Field(
+        ge=0
+        )
+    complite: str
+    date_complite: date
+
+    @field_validator("date_complite", mode="before")
+    @classmethod
+    def date_requize(cls, date_v: str):
+        return datetime.strptime(date_v, "%d/%m/%y").date()

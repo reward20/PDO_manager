@@ -23,12 +23,22 @@ class Settings(BaseSettings):
 
     MLEXCEL_CSV_NAME_COLUMNS: Tuple[str, ...] = (
         "mr_list", "order", "detail_num", "detail_name",
-        "detail_count", "mass_metal", "w_hours",
+        "count", "mass_metal", "w_hours",
         "material", "mass_detail", "profile_full",
         "profile", "date_start", "det_in_workpiece"
+    )
+
+    SKLAD_CSV_NAME_COLUMNS: Tuple[str, ...] = (
+        "detail_num", "mr_list", "complite", "count", "date_complite",
         )
 
-    DIR_DATABASE: str = r"Data\\DB"
+    DIR_DATABASE: Path = Path(r"Data\\DB")
+    DIR_COPY: Path = Path(r"Data\\Copy")
+    X_DOS_FOLDER: Path = Path(r"X:\Для ПДО\Походня В.О\DOS_File")
+
+    DIR_DATABASE.mkdir(parents=True, exist_ok=True)
+    DIR_COPY.mkdir(parents=True, exist_ok=True)
+
     NAME_MLE_DB: str = r"MLE_DB.db"
     MLE_engine: str = f"sqlite+pysqlite:///{DIR_DATABASE}\\{NAME_MLE_DB}"
     # MLE_engine: str = "sqlite+pysqlite:///:memory:"
