@@ -1,6 +1,7 @@
 
 from datetime import date
 from decimal import Decimal
+from sqlalchemy.orm import DeclarativeBase, declared_attr
 from sqlalchemy import (
     VARCHAR,
     CheckConstraint,
@@ -10,13 +11,19 @@ from sqlalchemy import (
     Column,
     INTEGER,
 )
-from .base import Base
 from typing import TYPE_CHECKING
 
 __all__ = [
     "Mlexcel_model",
     "Operation",
+    "Base",
 ]
+
+
+class Base(DeclarativeBase):
+    @declared_attr.directive
+    def __tablename__(self) -> str:
+        return self.__name__.lower()
 
 
 class Mlexcel_model(Base):
@@ -55,8 +62,8 @@ class Mlexcel_model(Base):
         profile = Column(VARCHAR(64))
         det_in_workpiece = Column(INTEGER)
 
-    def __str__(self):
-        return self.mr_list
+    # def __str__(self):
+    #     return self.mr_list
 
     __table_args__ = (
         CheckConstraint("count >= 0"),

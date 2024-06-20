@@ -1,4 +1,3 @@
-from typing import Tuple, Union
 from datetime import date, datetime
 from decimal import Decimal
 from pydantic import (
@@ -8,11 +7,11 @@ from pydantic import (
     field_validator,
     ConfigDict
 )
-
+from typing import List, Tuple, Union
 from pathlib import Path
 
 __all__ = [
-    "Correct_Dir",
+    "CorrectDir",
     "Correct_Suffix",
     "ML_ex_correct",
     "ML_O_correct",
@@ -20,30 +19,40 @@ __all__ = [
 ]
 
 
-class Correct_Dir(BaseModel):
-    path: Union[Path, str]
+class CorrectDir(BaseModel):
+    path: Path | list[Path]
 
     @field_validator("path")
     @classmethod
-    def check_is_dir(cls, path_dir: Union[Path, str]) -> Path:
+    def validate_path(cls, path_dir: Union[Path, str, list]):
+        path_confirm = None
+        if isinstance(path_dir, (tuple, list)):
+            path_confirm = []
+            for path in path_dir:
+                path_confirm.append(CorrectDir.check_is_dir(path))
+        else:
+            path_confirm = CorrectDir.check_is_dir(path_dir)
+        return path_confirm
 
+    @classmethod
+    def check_is_dir(cls, path_dir: Union[Path, str]) -> Path:
         path_dir = Path(path_dir)
         if not path_dir.exists():
-            raise ValueError(f"{path_dir} is not exits!")
+            raise ValueError(f"{path_dir.absolute()} is not exits!")
         if not path_dir.is_dir():
             raise ValueError(f"{path_dir} is not dir!")
         return path_dir
 
 
 class Correct_Suffix(BaseModel):
-    suffix: Union[str, Tuple[str, ...]]
+    suffix: str | List[str]
 
     @field_validator("suffix")
     @classmethod
     def valid_suffix(
             cls,
-            suffix: Union[str, Tuple[str, ...]]
-            ) -> Union[str, Tuple[str, ...]]:
+            suffix: str | Tuple[str, ...]
+            ) -> Tuple[str, ...]:
         if isinstance(suffix, str):
             return Correct_Suffix.valid_str_suffix(suffix)
         elif isinstance(suffix, (tuple, list)):
@@ -57,7 +66,7 @@ class Correct_Suffix(BaseModel):
             return tuple(["." + suffix])
 
     @staticmethod
-    def valid_tuple_suffix(suffix: Tuple[str]) -> Tuple[str]:
+    def valid_tuple_suffix(suffix: Tuple[str, ...]) -> Tuple[str, ...]:
         list_storage = list()
         for item in suffix:
             if item.startswith(".") or not item:

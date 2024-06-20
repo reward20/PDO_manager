@@ -1,5 +1,5 @@
 from .schemas import (
-    Correct_Dir,
+    CorrectDir,
     Correct_Suffix,
     ML_ex_correct,
     ML_O_correct,
@@ -7,7 +7,7 @@ from .schemas import (
 )
 
 __all__ = [
-    "Correct_Dir",
+    "CorrectDir",
     "Correct_Suffix",
     "ML_ex_correct",
     "ML_O_correct",

@@ -1,16 +1,25 @@
 from dataclasses import dataclass
 from sqlalchemy import delete, insert, update
-from DB_project.Ml_readers import MLEXCEL_reader, MLEXCELO_reader, SKLAD_reader
 from typing import TYPE_CHECKING, Type, Union
 
-from src.models import Mlexcel_model, Operation
-from src import db_engine
+from config import db_engine
+from ..models import Base, Mlexcel_model, Operation
+from .ml_readers import MlexcelReader, MlexcelOReader, SkladReader
+
+__all__ = [
+    "MleDb",
+    "SkldDb",
+    "MleODb",
+]
 
 
 @dataclass
-class MLE_DB(object):
-    reader: Union[MLEXCEL_reader, MLEXCELO_reader, SKLAD_reader]
+class MleDb(object):
+    reader: Union[MlexcelReader, MlexcelOReader, SkladReader]
     model: Union[Type[Mlexcel_model], Type[Operation]]
+
+    def __post_init__(self):
+        Base.metadata.create_all(db_engine)
 
     def rewrite_db(self):
         with db_engine.connect() as connect:
@@ -20,10 +29,10 @@ class MLE_DB(object):
             connect.commit()
 
 
-class SKLAD_UP_DB(MLE_DB):
+class SkldDb(MleDb):
     if TYPE_CHECKING:
         model: Type[Mlexcel_model]
-        reader: SKLAD_reader
+        reader: SkladReader
 
     def rewrite_db(self):
         with db_engine.connect() as connect:
@@ -40,7 +49,7 @@ class SKLAD_UP_DB(MLE_DB):
             connect.commit()
 
 
-class MLE_O_DB(MLE_DB):
+class MleODb(MleDb):
 
     def rewrite_db(self):
         def generator_line():

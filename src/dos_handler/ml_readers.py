@@ -3,40 +3,43 @@ from dataclasses import dataclass
 from decimal import Decimal
 from pathlib import Path
 from typing import Any, Dict, Iterable
+
+from config import reader_setting
 from src.schemas import ML_ex_correct, ML_O_correct, SKLAD_correct
-from DB_project.settings import settings
 
 __all__ = [
-    "MLEXCEL_reader",
-    "MLEXCELO_reader",
-    "SKLAD_reader",
+    "MlexcelReader",
+    "MlexcelOReader",
+    "SkladReader",
 ]
 
 
 @dataclass
-class MLEXCEL_reader(object):
+class MlexcelReader(object):
     file_path: Path
 
-    def read_file(self) -> Iterable[Dict]:
+    def _read_file(self) -> Iterable[Dict]:
         with open(
                 self.file_path,
                 mode="r",
                 encoding="cp866",
-                newline=""
-                ) as csvfile:
+                newline="",
+        ) as csvfile:
             csv_reader = csv.reader(csvfile, delimiter='^')
             for row in csv_reader:
-                fields = dict(zip(settings.MLEXCEL_CSV_NAME_COLUMNS, row))
-                obj = ML_ex_correct(**fields)
+                fields = dict(
+                    zip(reader_setting.MLEXCEL_CSV_NAME_COLUMNS, row)
+                )
+                obj = ML_ex_correct(**fields)  # type: ignore
                 yield obj.model_dump()
 
     def __iter__(self):
-        return self.read_file()
+        return self._read_file()
 
 
-class MLEXCELO_reader(MLEXCEL_reader):
+class MlexcelOReader(MlexcelReader):
 
-    def read_file(self) -> Iterable[Dict]:
+    def _read_file(self) -> Iterable[Dict]:
         with open(
                 self.file_path,
                 mode="r",
@@ -73,9 +76,9 @@ class MLEXCELO_reader(MLEXCEL_reader):
                     yield obj.model_dump()
 
 
-class SKLAD_reader(MLEXCEL_reader):
+class SkladReader(MlexcelReader):
 
-    def read_file(self) -> Iterable[Dict]:
+    def _read_file(self) -> Iterable[Dict]:
         with open(
             self.file_path,
             "r", encoding="cp866",
@@ -83,7 +86,7 @@ class SKLAD_reader(MLEXCEL_reader):
         ) as file:
             for read_line in file:
                 line = read_line.rstrip().split("^")
-                fields = dict(zip(settings.SKLAD_CSV_NAME_COLUMNS, line))
+                fields = dict(zip(reader_setting.SKLAD_CSV_NAME_COLUMNS, line))
                 obj = SKLAD_correct(**fields)
                 return_dict = obj.model_dump()
                 yield return_dict
