@@ -20,7 +20,7 @@ __all__ = [
 
 
 class CorrectDir(BaseModel):
-    path: Path | list[Path]
+    path: Path
 
     @field_validator("path")
     @classmethod
