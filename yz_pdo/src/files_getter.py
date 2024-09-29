@@ -69,12 +69,10 @@ class FilesGetter(object):
         else:
             raise ValueError(f"{name} is not Found")
 
-
     def get_folders(self, *, path_dir: Path | None = None) -> Iterator[Path]:
         if path_dir is None:
             path_dir = self.path_dir
         return (folder for folder in path_dir.iterdir() if folder.is_dir())
-
 
     def get_all_files(self) -> Iterator[Path]:
         list_folder = [self.path_dir, ]

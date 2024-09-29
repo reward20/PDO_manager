@@ -1,3 +1,4 @@
+from decimal import Decimal
 from sqlalchemy import (
     select, delete, update
 )
@@ -51,15 +52,14 @@ class ProductUpdate(DbConnect):
                 title=detail_name,     
                 h_work_one=w_hours,
                 mass_metall=mass_metall,
-                mass_detail_one=mass_detail,
-                profile=profile,
-                profile_full=profile_full,
-                material= material,
+                mass_detail=mass_detail,
+                id_profile=profile.id,
+                id_profile_full=profile_full.id,
+                id_material=material.id_material,
                 det_in_workpiece=det_in_workpiece
             )
         )
-        product = self.session.scalar(stmt_update)
-        return product
+        self.session.execute(stmt_update)
 
 
 class ProductCreate(ProductExist, ProductUpdate, ProfilesCreate, MaterialCreate):
@@ -73,15 +73,15 @@ class ProductCreate(ProductExist, ProductUpdate, ProfilesCreate, MaterialCreate)
     def add_product_witdh(
             self,
             *,
-            detail_num,
-            detail_name,
-            mass_metall,
-            w_hours,
-            material,
-            mass_detail,
-            profile_full,
-            profile,
-            det_in_workpiece,
+            detail_num: str,
+            detail_name: str,
+            mass_metall: Decimal,
+            w_hours: Decimal,
+            material: str,
+            mass_detail: Decimal,
+            profile_full: str,
+            profile: str,
+            det_in_workpiece: int,
             ):
         product = self.exists_product(name=detail_num)
         new_profiles = self.add_profile(profile)
@@ -93,11 +93,11 @@ class ProductCreate(ProductExist, ProductUpdate, ProfilesCreate, MaterialCreate)
                 title=detail_name,     
                 h_work_one=w_hours,
                 mass_metall=mass_metall,
-                mass_detail_one=mass_detail,
+                mass_detail=mass_detail,
                 profile=new_profiles,
                 profile_full=new_profiles_full,
                 material= new_material,
-                det_in_workpiece=det_in_workpiece
+                det_in_workpiece=det_in_workpiece,
             )
         else:
             self.update_product(

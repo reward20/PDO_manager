@@ -25,7 +25,6 @@ class OpNameExist(DbConnect):
             where(exist_sub).
             where(Operation_Name.name == op_name)
         )
-
         result = self.session.scalar(stmt_exist)
         return result
 
@@ -35,10 +34,10 @@ class OpNameCreate(OpNameExist):
     def add_op_name(self, op_name: str) -> Operation_Name:
         result = self.exist_op_name(op_name)
         if result is not None:
-            raise ValueError(f"Oper_name '{op_name}' is exist in table '{Operation_Name.__tablename__}'")
-        new_line = Operation_Name(name=op_name)
-        self.session.add(new_line)
-        return new_line
+            return result
+        result = Operation_Name(name=op_name)
+        self.session.add(result)
+        return result
 
 
 class OpNameDelete(OpNameExist):

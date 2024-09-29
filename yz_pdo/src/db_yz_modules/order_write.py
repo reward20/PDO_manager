@@ -1,6 +1,7 @@
+from typing import Any, Generator
 from sqlalchemy import delete, select
 
-from yz_pdo.src.models import Order
+from yz_pdo.src.models import MrList, Order
 from .db_connect import DbConnect
 
 
@@ -61,6 +62,11 @@ class OrderView(OrderExist):
         if result is None:
             raise ValueError(f"order '{order_name}' is not found in table '{Order.__tablename__}'")
         return result
+    
+    def get_order_mrlist(self, order_name: str) -> Generator[MrList, Any, Any]:
+        order = self.get_order(order_name)
+        for mr_list in order.mrlist:
+            yield mr_list
 
 
 class OrderWriter(OrderCreate, OrderDelete):

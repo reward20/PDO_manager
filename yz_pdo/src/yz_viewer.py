@@ -29,7 +29,6 @@ class YzViewer(DBViewer):
             pos, check_name, count = check_yz
             list_tree_yz.append((check_yz))
             dict_result = self.view_part_yz(check_name, count)
-            
             temp_list = []
             for name, count_yz in dict_result.items():
                 temp_list.append((pos+1, name, count_yz))
@@ -221,7 +220,15 @@ class YzViewer(DBViewer):
     
     @staticmethod
     def _show_tree(tree_list: list[tuple[int, str, int]]) -> None:
-        for pos, data, count_c in tree_list:
+        for pos, *data in tree_list:
             for count in range(pos):
                 print("|  ", end="")
-            print(f"|_{data}: {count_c}")
+            print(f"|_{" ".join([str(x) for x in data])}")
+
+    @staticmethod
+    def _write_show_tree(tree_list: list[tuple[int, str, int]]) -> None:
+        with open(file="tree.txt", mode="w", encoding="cp1251") as wr:
+            for pos, *data in tree_list:
+                for count in range(pos):
+                    wr.write("|  ")
+                wr.write(f"|_{" | ".join([str(x) for x in data])} |\n")

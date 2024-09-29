@@ -2,7 +2,7 @@ from pathlib import Path
 from collections import defaultdict
 from .files_getter import FilesGetter
 from yz_pdo.config import settings
-
+from shutil import move
 
 __all__ = [
     "PotrGetter",
@@ -81,6 +81,7 @@ class PdoGetter(FilesGetter):
     def __init__(self, path_dir: Path, suffix: str | tuple[str] = ""):
         super().__init__(path_dir, suffix)
         self._files = defaultdict(dict)
+        self._update_files()
 
     def _validate_pdo_file(self, files: list[Path]):
         error_message = []
@@ -89,7 +90,7 @@ class PdoGetter(FilesGetter):
             if name_file not in files_name:
                 error_message.append(name_file)
         if error_message:
-            ValueError (f"In {self.path_dir} not found files by name: {error_message}")
+            raise ValueError (f"In {self.path_dir} not found files by name: {error_message}")
 
     def _update_files(self):
         files = list(self.files)
@@ -97,9 +98,18 @@ class PdoGetter(FilesGetter):
 
         for file in files:
             if file.stem.upper() in settings.DOS_FILES_NAMES:
+                # self._files[file.stem] = self._move_file(file, settings.DOS_FOLDER)
                 self._files[file.stem] = file
+        self._move_dos_files()
+
+    def _move_dos_files(self):
+        if not settings.DOS_MOVING:
+            return None
+        for name, file in self._files.items():
+            self._files[name] = self._move_file(file, settings.DOS_FOLDER)
 
     @property
     def files_dict(self) -> dict[str,  Path]:
-        self._update_files()
         return self._files
+
+

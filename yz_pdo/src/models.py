@@ -40,19 +40,22 @@ class Product(Base):
     title: Mapped[str] = mapped_column(VARCHAR(64), default="")
     h_work_one: Mapped[Decimal] = mapped_column(default=Decimal(0.000))
     mass_metall: Mapped[Decimal] = mapped_column(default=Decimal(0.000))
-    mass_detail_one: Mapped[Decimal] = mapped_column(default=Decimal(0.000))
+    mass_detail: Mapped[Decimal] = mapped_column(default=Decimal(0.000))
     id_profile: Mapped[int | None] = mapped_column(ForeignKey("profiles.id", name="fk_profile"))
     id_profile_full: Mapped[int | None] = mapped_column(ForeignKey("profiles.id", name="fk_profile_full"))
     id_material: Mapped[int | None] = mapped_column(ForeignKey("materials.id_material", name="fk_material"))
     det_in_workpiece: Mapped[int] = mapped_column(default=1)
 
-    _profile: Mapped["Profiles"] = relationship(lazy="select", foreign_keys=id_profile, viewonly=True,)
-    _profile_full: Mapped["Profiles"] = relationship(lazy="select", foreign_keys=id_profile_full, viewonly=True,)
-    _material: Mapped["Materials"] = relationship(lazy="select", viewonly=True)
+    _operation: Mapped[list["Operation"]] = relationship(lazy="select", viewonly=True)
+    _mr_list: Mapped[list["MrList"]] = relationship(lazy="select", viewonly=True)
 
-    profile: AssociationProxy[str] = association_proxy("_profile", "name")
-    profile_full: AssociationProxy[str] = association_proxy("_profile_full", "name")
-    material: AssociationProxy[str] = association_proxy("_material", "name")
+    profile: Mapped["Profiles"] = relationship(lazy="select", foreign_keys=id_profile)
+    profile_full: Mapped["Profiles"] = relationship(lazy="select", foreign_keys=id_profile_full)
+    material: Mapped["Materials"] = relationship(lazy="select")
+
+    profile_name: AssociationProxy[str] = association_proxy("profile", "name")
+    profile_full_name: AssociationProxy[str] = association_proxy("profile_full", "name")
+    material_name: AssociationProxy[str] = association_proxy("material", "name")
 
     _parts_masters: Mapped[list["YZ_include"]] = relationship(
         "YZ_include",
@@ -136,14 +139,11 @@ class Product(Base):
         for part, table_count in zip(self._master_tables, self._count_table_in_part):
             yield part, table_count
 
-    def __init__(self, name: str):
-        self.name = name
-
 
 class Materials(Base):
     id_material: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(VARCHAR(64), nullable=False, unique=True)
-    product: Mapped[list[Product]] = relationship()
+    product: Mapped[list[Product]] = relationship(viewonly=True)
 
 
 class Profiles(Base):
@@ -157,45 +157,46 @@ class Profiles(Base):
 
 class MrList(Base):
     mr_list: Mapped[str] = mapped_column(VARCHAR(8), primary_key=True)
-    id_order: Mapped[int] = mapped_column(ForeignKey("order.id", name="mr_order"))
-    id_product: Mapped[int] = mapped_column(ForeignKey("product.id", name="mr_product"))
+    order_id: Mapped[int] = mapped_column(ForeignKey("order.id", name="mr_order"))
+    product_id: Mapped[int] = mapped_column(ForeignKey("product.id", name="mr_product"))
     count: Mapped[int] = mapped_column()
     w_hours: Mapped[Decimal] = mapped_column(default=Decimal(0.000))
     date_start: Mapped[date] = mapped_column()
     complite: Mapped[str | None] = mapped_column(VARCHAR(1))
     date_complite: Mapped[date | None] = mapped_column()
 
-    _product: Mapped[Product] = relationship(viewonly=True)
-    _order: Mapped["Order"] = relationship(viewonly=True)
+    product: Mapped[Product] = relationship()
+    order: Mapped["Order"] = relationship()
 
-    product: AssociationProxy[str] = association_proxy("_product", "name")
-    order: AssociationProxy[str] = association_proxy("_order", "order")
+    product_name: AssociationProxy[str] = association_proxy("product", "name")
+    order_name: AssociationProxy[str] = association_proxy("order", "name")
 
 
 class Order(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(VARCHAR(5))
-    product: Mapped[list[MrList]] = relationship(viewonly=True)
+    mrlist: Mapped[list[MrList]] = relationship(viewonly=True)
 
 
 class Operation(Base):
-    id_detail: Mapped[int] = mapped_column(ForeignKey("product.id", name="oper_det"), primary_key=True)
-    num_operation: Mapped[str] = mapped_column(VARCHAR(3), primary_key=True)
-    id_operation: Mapped[int] = mapped_column(ForeignKey("operation_name.id", name="oper_name"))
+
+    product_id: Mapped[int] = mapped_column(ForeignKey("product.id", name="oper_det"), primary_key=True)
+    num_operation: Mapped[int] = mapped_column(primary_key=True)
+    operation_id: Mapped[int] = mapped_column(ForeignKey("operation_name.id", name="oper_name"))
     t_install: Mapped[Decimal] = mapped_column(default=Decimal(0.000))
     t_single: Mapped[Decimal] = mapped_column(default=Decimal(0.000))
 
-    _detail: Mapped[Product] = relationship(viewonly=True)
-    _name_operation: Mapped["Operation_Name"] = relationship(viewonly=True)
+    detail: Mapped["Product"] = relationship()
+    operation: Mapped["Operation_Name"] = relationship()
 
-    detail: AssociationProxy[str] = association_proxy("_detail", "name")
-    operation: AssociationProxy[str] = association_proxy("_name_operation", "name")
+    detail_name: AssociationProxy[str] = association_proxy("detail", "name")
+    operation_name: AssociationProxy[str] = association_proxy("operation", "name")
 
 
 class Operation_Name(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(VARCHAR(64), unique=True)
-    detail: Mapped[list[Operation]] = relationship(viewonly=True)
+    operation: Mapped[list[Operation]] = relationship(viewonly=True)
 
 
 class YZ_include(Base):

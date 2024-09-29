@@ -157,20 +157,19 @@ class MOWHourse(BaseModel):
 class ML_Operation_Model(BaseModel):
     model_config = ConfigDict(coerce_numbers_to_str=True)
     detail_num: str = Field(max_length=128, min_length=2)
-    operation_num: str
+    operation_num: int
     operation_name: str = Field(max_length=128, min_length=1)
     t_single: Decimal = Field(ge=0)
     t_install: Decimal = Field(ge=0)
 
     @field_validator("operation_num", mode="after")
     @classmethod
-    def num_operation_validate(cls, num: str):
-        temp_num = int(num)
-        if not temp_num > 99 and temp_num < 1000:
+    def num_operation_validate(cls, num: int):
+        if not num > 99 and num < 1000:
             ValidationError(
                 f"Operation number most be greater than 99 and less 1000, received {num}"
             )
-        return f"{str(num):0>3}"
+        return num
     
 
 class ML_sum_Model(BaseModel):
